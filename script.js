@@ -63,19 +63,15 @@ function displayMobList() {
         return;
     }
 
-// ... displayMobList 関数の内部 ...
-
-        // ... 省略 ...
-
         const htmlContent = mobList.map(mob => {
             
             return `
                 <div class="mob-card">
                     
-                    <div style="display: flex; align-items: center; flex-grow: 1; min-width: 0;">
+                    <div class="mob-info-group">
                         <div class="mob-rank-badge">${mob['ランク']}</div>
                         
-                        <div class="mob-info">
+                        <div class="mob-name-and-area">
                             <div class="mob-name">${mob['モブ名']}</div>
                             <div class="mob-area">エリア: ${mob['エリア']}</div>
                         </div>
@@ -96,8 +92,7 @@ function displayMobList() {
         }).join('');
 
         mobListElement.innerHTML = htmlContent;
-
-        // ... 後略（イベントリスナーの追加は変更なし） ...
+    
     document.querySelectorAll('.report-button').forEach(button => {
         button.addEventListener('click', () => {
             const mob = JSON.parse(button.getAttribute('data-mob'));
