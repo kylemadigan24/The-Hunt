@@ -1,5 +1,5 @@
 // ★★★ GAS APIのURLは討伐報告（POST/GET）で使用します ★★★
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxIJs404yhFffwwGDA3Em-fPxSfkJt16DN7hai3oGqHfv1HgA1duf0kVCGHJP60z44Ghg/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwBUfwgEXGoQxQcrC968xTPRRo5fOkD_ZlF5K639ObmTo1fyY8B_55YIJHipKkfFqcx/exec';
 
 // DOM要素の取得 (変更なし)
 const mobListElement = document.getElementById('mob-list');
