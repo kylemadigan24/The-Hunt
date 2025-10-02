@@ -63,33 +63,41 @@ function displayMobList() {
         return;
     }
 
-    const htmlContent = mobList.map(mob => {
-        return `
-            <div class="mob-card">
-                <div class="mob-info">
-                    <div class="mob-name">${mob['モブ名']} 
-                        <span class="mob-rank">${mob['ランク']}ランク</span>
+// ... displayMobList 関数の内部 ...
+
+        // ... 省略 ...
+
+        const htmlContent = mobList.map(mob => {
+            
+            return `
+                <div class="mob-card">
+                    
+                    <div style="display: flex; align-items: center; flex-grow: 1; min-width: 0;">
+                        <div class="mob-rank-badge">${mob['ランク']}</div>
+                        
+                        <div class="mob-info">
+                            <div class="mob-name">${mob['モブ名']}</div>
+                            <div class="mob-area">エリア: ${mob['エリア']}</div>
+                        </div>
                     </div>
-                    <div class="mob-area">
-                        エリア: ${mob['エリア']}
+                    
+                    <div class="report-button-wrapper">
+                        <button class="report-button" 
+                                data-mob='${JSON.stringify(mob)}'>
+                            報告
+                        </button>
+                    </div>
+                    
+                    <div class="mob-extra-info">
+                        ${mob['備考（将来のマップツール用）'] || '（備考情報なし）'}
                     </div>
                 </div>
-                
-                <button class="report-button" 
-                        data-mob='${JSON.stringify(mob)}'>
-                    討伐報告
-                </button>
-                
-                <div class="mob-extra-info">
-                    ${mob['備考（将来のマップツール用）'] || '（備考情報なし）'}
-                </div>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    mobListElement.innerHTML = htmlContent;
+        mobListElement.innerHTML = htmlContent;
 
-    // ボタンにイベントリスナーを追加 (前回と変更なし)
+        // ... 後略（イベントリスナーの追加は変更なし） ...
     document.querySelectorAll('.report-button').forEach(button => {
         button.addEventListener('click', () => {
             const mob = JSON.parse(button.getAttribute('data-mob'));
