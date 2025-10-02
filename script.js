@@ -1,103 +1,151 @@
 // ★★★ ここにデプロイしたGASのURLを貼り付けてください ★★★
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzQeHK-kMmobW1HduWWOuMTpIDs8X5vj7PG8CKZI7f3amzUEYVCaJP3uyC23L_lBe0z0A/exec';
+const GAS_API_URL = 'YOUR_GAS_WEB_APP_URL';
+
+// DOM要素の取得
+const mobListElement = document.getElementById('mob-list');
+const modal = document.getElementById('report-modal');
+const closeButton = document.getElementsByClassName('close-button')[0];
+const reportForm = document.getElementById('report-form');
+const reportTimeInput = document.getElementById('report_time');
+const messageElement = document.getElementById('message');
+const submitButton = document.getElementById('submit-report-button');
 
 /**
- * データをGAS APIから取得し、HTMLに表示するメイン関数
+ * ユーティリティ: 現在時刻を <input type="datetime-local"> 形式にフォーマット
  */
-async function fetchAndDisplayData() {
-    const listElement = document.getElementById('hunt-list');
+function getCurrentDateTimeLocal() {
+    const now = new Date();
+    // 日本時間 (+9時間) に合わせてフォーマット
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
+/**
+ * 討伐報告モーダルを表示し、モブ情報をセットする
+ */
+function openReportModal(mob) {
+    // 3. 必要な情報を表示
+    document.getElementById('modal_mob_display').textContent = mob['モブ名'];
+    document.getElementById('modal_area_display').textContent = mob['エリア'];
+
+    // フォームの隠しフィールドにモブ情報をセット
+    document.getElementById('report_mobName').value = mob['モブ名'];
+    document.getElementById('report_mobRank').value = mob['ランク'];
+    document.getElementById('report_area').value = mob['エリア'];
+
+    // 4. 現在時刻をセットし、編集可能にする
+    reportTimeInput.value = getCurrentDateTimeLocal();
     
+    messageElement.classList.add('hidden'); // メッセージを隠す
+    modal.style.display = 'block';
+}
+
+/**
+ * モーダルを閉じる
+ */
+function closeReportModal() {
+    modal.style.display = 'none';
+}
+
+// モーダルイベントリスナー
+closeButton.onclick = closeReportModal;
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeReportModal();
+    }
+}
+
+/**
+ * GAS APIからモブ一覧データを取得し、HTMLに表示するメイン関数
+ */
+async function fetchAndDisplayMobList() {
+    mobListElement.innerHTML = `<p>データを読み込み中...</p>`; // ローディングメッセージ
+
     try {
         const response = await fetch(GAS_API_URL);
         const result = await response.json();
 
-        // GASからエラーが返された場合
         if (result.status === 'error') {
-            listElement.innerHTML = `<p class="error">データ取得エラー: ${result.message}</p>`;
+            mobListElement.innerHTML = `<p class="error">データ取得エラー: ${result.message}</p>`;
             return;
         }
 
-        const data = result.data;
+        const mobList = result.mobList; // GASから返されるモブ一覧
+        // const huntList = result.huntList; // 討伐履歴は今回は表示に使用しません
         
-        if (!data || data.length === 0) {
-            listElement.innerHTML = `<p>現在、報告されている討伐データはありません。</p>`;
+        if (!mobList || mobList.length === 0) {
+            mobListElement.innerHTML = `<p>登録されているモンスター情報がありません。</p>`;
             return;
         }
 
-        // データを「討伐日時 (UTC)」の新しい順にソート（昇順なら逆順に）
-        // 日付文字列をDateオブジェクトに変換して比較
-        data.sort((a, b) => new Date(b['討伐日時 (UTC)']) - new Date(a['討伐日時 (UTC)']));
-        
-        // HTML要素を構築
-        const htmlContent = data.map(item => {
-            const utcTime = new Date(item['討伐日時 (UTC)']);
-            // 日本時間（JST）に変換して表示
-            const jstTime = utcTime.toLocaleString('ja-JP', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'Asia/Tokyo'
-            });
-
-            // カードの色やスタイルをランクによって変えることもできますが、今回はシンプルに統一
+        // 1. ホームページ上に最初から全モンスターを表示
+        const htmlContent = mobList.map(mob => {
+            // 最終討伐時間の検索ロジックなどをここに将来的に追加
+            
             return `
-                <div class="hunt-card">
-                    <div class="mob-name">${item['モブ名']} 
-                        <span class="mob-rank rank-${item['ランク'].toLowerCase()}">${item['ランク']}ランク</span>
+                <div class="mob-card">
+                    <div class="mob-info">
+                        <div class="mob-name">${mob['モブ名']} 
+                            <span class="mob-rank">${mob['ランク']}ランク</span>
+                        </div>
+                        <div class="mob-area">
+                            エリア: ${mob['エリア']}
+                        </div>
                     </div>
-                    <div class="details">
-                        <p>討伐日時 (JST): <span>${jstTime}</span></p>
-                        <p>エリア: <span>${item['エリア']}</span></p>
-                        <p>ワールド: <span>${item['ワールド']}</span></p>
-                        <p>報告者: <span>${item['報告者'] || '不明'}</span></p>
+                    
+                    <button class="report-button" 
+                            data-mob='${JSON.stringify(mob)}'>
+                        討伐報告
+                    </button>
+                    
+                    <div class="mob-extra-info">
+                        ${mob['備考（将来のマップツール用）'] || '（備考情報なし）'}
                     </div>
                 </div>
             `;
         }).join('');
 
-        listElement.innerHTML = htmlContent;
+        mobListElement.innerHTML = htmlContent;
+
+        // ボタンにイベントリスナーを追加
+        document.querySelectorAll('.report-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // data-mob 属性からモブ情報を取得
+                const mob = JSON.parse(button.getAttribute('data-mob'));
+                openReportModal(mob);
+            });
+        });
 
     } catch (e) {
-        // ネットワークエラーなど
-        listElement.innerHTML = `<p class="error">ネットワーク接続に失敗しました。API URLを確認してください。</p>`;
+        mobListElement.innerHTML = `<p class="error">ネットワーク接続に失敗しました。API URLを確認してください。</p>`;
         console.error("Fetch error:", e);
     }
 }
 
-// ページロード時にデータ取得を開始
-fetchAndDisplayData();
-
-// フォーム要素の取得
-const form = document.getElementById('report-form');
-const messageElement = document.getElementById('message');
-const submitButton = document.getElementById('submit-button');
-
-// フォーム送信時の処理
-form.addEventListener('submit', async function(e) {
-    e.preventDefault(); // ページの再読み込みを防止
+// フォーム送信時の処理 (doPost)
+reportForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
     
     submitButton.disabled = true;
-    submitButton.textContent = '登録中...';
-    messageElement.classList.add('hidden'); // メッセージを一旦非表示に
+    submitButton.textContent = '報告送信中...';
+    messageElement.classList.add('hidden');
 
     // フォームからデータを取得
-    const mobName = document.getElementById('mobName').value;
-    const mobRank = document.getElementById('mobRank').value;
-    const area = document.getElementById('area').value;
-    const world = document.getElementById('world').value;
-    const reporter = document.getElementById('reporter').value;
-    
-    // GASに送信するデータオブジェクトを作成 (キー名は doPost のコードと合わせる)
+    const mobName = document.getElementById('report_mobName').value;
+    const mobRank = document.getElementById('report_mobRank').value;
+    const area = document.getElementById('report_area').value;
+    const reportTime = document.getElementById('report_time').value; // 編集された日時
+    const world = document.getElementById('report_world').value;
+    const reporter = document.getElementById('report_reporter').value;
+
     const payload = {
         mobName: mobName,
         mobRank: mobRank,
         area: area,
         world: world,
         reporter: reporter,
-        // ET時間は省略（GAS側で自動で現在時刻を記録するため）
+        reportTime: reportTime, // 討伐日時
+        etTime: '' // ET討伐時間はGAS側で計算するか、今回は空で送る
     };
 
     try {
@@ -112,25 +160,28 @@ form.addEventListener('submit', async function(e) {
         
         const result = await response.json();
 
-        // 成功時の処理
         if (result.status === 'success') {
             messageElement.textContent = result.message;
             messageElement.className = 'success';
-            form.reset(); // フォームをリセット
-            fetchAndDisplayData(); // 討伐リストを更新
+            reportForm.reset(); 
+            // 報告成功後、リストを再読み込み
+            fetchAndDisplayMobList(); 
+            // モーダルを自動で閉じる
+            setTimeout(closeReportModal, 1500); 
         } else {
-            // GASからのエラーメッセージを表示
             messageElement.textContent = result.message;
             messageElement.className = 'error';
         }
         
     } catch (error) {
-        // ネットワークエラーなど
         messageElement.textContent = '通信エラーが発生しました。';
         messageElement.className = 'error';
     } finally {
         submitButton.disabled = false;
-        submitButton.textContent = '討伐を報告する';
+        submitButton.textContent = '報告を確定する';
         messageElement.classList.remove('hidden');
     }
 });
+
+// ページロード時にデータ取得を開始
+fetchAndDisplayMobList();
