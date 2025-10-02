@@ -1,7 +1,7 @@
-// ★★★ ここにデプロイしたGASのURLを貼り付けてください ★★★
+// ★★★ GAS APIのURLは討伐報告（POST）でのみ使用します ★★★
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzQeHK-kMmobW1HduWWOuMTpIDs8X5vj7PG8CKZI7f3amzUEYVCaJP3uyC23L_lBe0z0A/exec';
 
-// DOM要素の取得
+// DOM要素の取得 (前回と変更なし)
 const mobListElement = document.getElementById('mob-list');
 const modal = document.getElementById('report-modal');
 const closeButton = document.getElementsByClassName('close-button')[0];
@@ -15,7 +15,6 @@ const submitButton = document.getElementById('submit-report-button');
  */
 function getCurrentDateTimeLocal() {
     const now = new Date();
-    // 日本時間 (+9時間) に合わせてフォーマット
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     return now.toISOString().slice(0, 16);
 }
@@ -24,30 +23,21 @@ function getCurrentDateTimeLocal() {
  * 討伐報告モーダルを表示し、モブ情報をセットする
  */
 function openReportModal(mob) {
-    // 3. 必要な情報を表示
+    // 必要な情報を表示・セット (前回と変更なし)
     document.getElementById('modal_mob_display').textContent = mob['モブ名'];
     document.getElementById('modal_area_display').textContent = mob['エリア'];
 
-    // フォームの隠しフィールドにモブ情報をセット
     document.getElementById('report_mobName').value = mob['モブ名'];
     document.getElementById('report_mobRank').value = mob['ランク'];
     document.getElementById('report_area').value = mob['エリア'];
 
-    // 4. 現在時刻をセットし、編集可能にする
     reportTimeInput.value = getCurrentDateTimeLocal();
     
-    messageElement.classList.add('hidden'); // メッセージを隠す
+    messageElement.classList.add('hidden');
     modal.style.display = 'block';
 }
 
-/**
- * モーダルを閉じる
- */
-function closeReportModal() {
-    modal.style.display = 'none';
-}
-
-// モーダルイベントリスナー
+// モーダルイベントリスナー (前回と変更なし)
 closeButton.onclick = closeReportModal;
 window.onclick = function(event) {
     if (event.target == modal) {
@@ -55,74 +45,60 @@ window.onclick = function(event) {
     }
 }
 
-/**
- * GAS APIからモブ一覧データを取得し、HTMLに表示するメイン関数
- */
-async function fetchAndDisplayMobList() {
-    mobListElement.innerHTML = `<p>データを読み込み中...</p>`; // ローディングメッセージ
-
-    try {
-        const response = await fetch(GAS_API_URL);
-        const result = await response.json();
-
-        if (result.status === 'error') {
-            mobListElement.innerHTML = `<p class="error">データ取得エラー: ${result.message}</p>`;
-            return;
-        }
-
-        const mobList = result.mobList; // GASから返されるモブ一覧
-        // const huntList = result.huntList; // 討伐履歴は今回は表示に使用しません
-        
-        if (!mobList || mobList.length === 0) {
-            mobListElement.innerHTML = `<p>登録されているモンスター情報がありません。</p>`;
-            return;
-        }
-
-        // 1. ホームページ上に最初から全モンスターを表示
-        const htmlContent = mobList.map(mob => {
-            // 最終討伐時間の検索ロジックなどをここに将来的に追加
-            
-            return `
-                <div class="mob-card">
-                    <div class="mob-info">
-                        <div class="mob-name">${mob['モブ名']} 
-                            <span class="mob-rank">${mob['ランク']}ランク</span>
-                        </div>
-                        <div class="mob-area">
-                            エリア: ${mob['エリア']}
-                        </div>
-                    </div>
-                    
-                    <button class="report-button" 
-                            data-mob='${JSON.stringify(mob)}'>
-                        討伐報告
-                    </button>
-                    
-                    <div class="mob-extra-info">
-                        ${mob['備考（将来のマップツール用）'] || '（備考情報なし）'}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        mobListElement.innerHTML = htmlContent;
-
-        // ボタンにイベントリスナーを追加
-        document.querySelectorAll('.report-button').forEach(button => {
-            button.addEventListener('click', () => {
-                // data-mob 属性からモブ情報を取得
-                const mob = JSON.parse(button.getAttribute('data-mob'));
-                openReportModal(mob);
-            });
-        });
-
-    } catch (e) {
-        mobListElement.innerHTML = `<p class="error">ネットワーク接続に失敗しました。API URLを確認してください。</p>`;
-        console.error("Fetch error:", e);
-    }
+function closeReportModal() {
+    modal.style.display = 'none';
 }
 
-// フォーム送信時の処理 (doPost)
+/**
+ * モブ一覧データをローカルから取得し、HTMLに表示するメイン関数
+ * ★API通信がなくなり、高速になります
+ */
+function displayMobList() {
+    
+    // mob-data.js で定義された ALL_MOBS_DATA を直接使用
+    const mobList = ALL_MOBS_DATA; 
+        
+    if (!mobList || mobList.length === 0) {
+        mobListElement.innerHTML = `<p>登録されているモンスター情報がありません。</p>`;
+        return;
+    }
+
+    const htmlContent = mobList.map(mob => {
+        return `
+            <div class="mob-card">
+                <div class="mob-info">
+                    <div class="mob-name">${mob['モブ名']} 
+                        <span class="mob-rank">${mob['ランク']}ランク</span>
+                    </div>
+                    <div class="mob-area">
+                        エリア: ${mob['エリア']}
+                    </div>
+                </div>
+                
+                <button class="report-button" 
+                        data-mob='${JSON.stringify(mob)}'>
+                    討伐報告
+                </button>
+                
+                <div class="mob-extra-info">
+                    ${mob['備考（将来のマップツール用）'] || '（備考情報なし）'}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    mobListElement.innerHTML = htmlContent;
+
+    // ボタンにイベントリスナーを追加 (前回と変更なし)
+    document.querySelectorAll('.report-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const mob = JSON.parse(button.getAttribute('data-mob'));
+            openReportModal(mob);
+        });
+    });
+}
+
+// フォーム送信時の処理 (doPost) はGASへ送信するため変更なし
 reportForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -130,6 +106,8 @@ reportForm.addEventListener('submit', async function(e) {
     submitButton.textContent = '報告送信中...';
     messageElement.classList.add('hidden');
 
+    // ... 中略（フォームデータの取得は変更なし） ...
+    
     // フォームからデータを取得
     const mobName = document.getElementById('report_mobName').value;
     const mobRank = document.getElementById('report_mobRank').value;
@@ -145,11 +123,11 @@ reportForm.addEventListener('submit', async function(e) {
         world: world,
         reporter: reporter,
         reportTime: reportTime, // 討伐日時
-        etTime: '' // ET討伐時間はGAS側で計算するか、今回は空で送る
+        etTime: '' 
     };
 
     try {
-        const response = await fetch(GAS_API_URL, {
+        const response = await fetch(GAS_API_URL, { // ★GAS APIにPOST通信
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -164,9 +142,7 @@ reportForm.addEventListener('submit', async function(e) {
             messageElement.textContent = result.message;
             messageElement.className = 'success';
             reportForm.reset(); 
-            // 報告成功後、リストを再読み込み
-            fetchAndDisplayMobList(); 
-            // モーダルを自動で閉じる
+            // 報告成功後、リストを再読み込みする処理は不要になりました
             setTimeout(closeReportModal, 1500); 
         } else {
             messageElement.textContent = result.message;
@@ -183,5 +159,5 @@ reportForm.addEventListener('submit', async function(e) {
     }
 });
 
-// ページロード時にデータ取得を開始
-fetchAndDisplayMobList();
+// ページロード時にデータ表示を開始
+displayMobList();
