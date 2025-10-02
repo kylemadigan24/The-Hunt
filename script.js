@@ -69,3 +69,68 @@ async function fetchAndDisplayData() {
 
 // ページロード時にデータ取得を開始
 fetchAndDisplayData();
+
+// フォーム要素の取得
+const form = document.getElementById('report-form');
+const messageElement = document.getElementById('message');
+const submitButton = document.getElementById('submit-button');
+
+// フォーム送信時の処理
+form.addEventListener('submit', async function(e) {
+    e.preventDefault(); // ページの再読み込みを防止
+    
+    submitButton.disabled = true;
+    submitButton.textContent = '登録中...';
+    messageElement.classList.add('hidden'); // メッセージを一旦非表示に
+
+    // フォームからデータを取得
+    const mobName = document.getElementById('mobName').value;
+    const mobRank = document.getElementById('mobRank').value;
+    const area = document.getElementById('area').value;
+    const world = document.getElementById('world').value;
+    const reporter = document.getElementById('reporter').value;
+    
+    // GASに送信するデータオブジェクトを作成 (キー名は doPost のコードと合わせる)
+    const payload = {
+        mobName: mobName,
+        mobRank: mobRank,
+        area: area,
+        world: world,
+        reporter: reporter,
+        // ET時間は省略（GAS側で自動で現在時刻を記録するため）
+    };
+
+    try {
+        const response = await fetch(GAS_API_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+
+        // 成功時の処理
+        if (result.status === 'success') {
+            messageElement.textContent = result.message;
+            messageElement.className = 'success';
+            form.reset(); // フォームをリセット
+            fetchAndDisplayData(); // 討伐リストを更新
+        } else {
+            // GASからのエラーメッセージを表示
+            messageElement.textContent = result.message;
+            messageElement.className = 'error';
+        }
+        
+    } catch (error) {
+        // ネットワークエラーなど
+        messageElement.textContent = '通信エラーが発生しました。';
+        messageElement.className = 'error';
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = '討伐を報告する';
+        messageElement.classList.remove('hidden');
+    }
+});
