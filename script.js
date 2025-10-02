@@ -1,5 +1,5 @@
 // ★★★ ここにデプロイしたGASのURLを貼り付けてください ★★★
-const GAS_API_URL = 'YOUR_GAS_WEB_APP_URL';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzQeHK-kMmobW1HduWWOuMTpIDs8X5vj7PG8CKZI7f3amzUEYVCaJP3uyC23L_lBe0z0A/exec';
 
 // DOM要素の取得
 const mobListElement = document.getElementById('mob-list');
