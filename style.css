@@ -21,54 +21,57 @@ h1 {
 }
 
 main {
-    padding: 10px; /* パディングを少し減らしてスマホで見やすく */
+    padding: 15px; 
     max-width: 1000px; 
     margin: 0 auto;
 }
 
-/* 1. 全モンスター一覧のスタイル */
+/* モブカードの基本レイアウト */
 .mob-card {
     background-color: white;
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 15px; /* PCでもスマホでも見やすいパディング */
     margin-bottom: 10px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     display: flex;
-    align-items: center;
+    flex-wrap: wrap; /* 備考欄を下に配置するために必要 */
+    align-items: flex-start; /* 上揃え */
     justify-content: space-between;
 }
 
-/* ランク表示のスタイル (左側のコンパクトな黄色背景) */
+/* ランク表示のスタイル (黄色の四角、角丸) */
 .mob-rank-badge {
-    /* ランクSをイメージした黄色背景 */
     background-color: #ffb300; 
     color: #333;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%; /* 丸形 */
+    padding: 4px 8px;
+    border-radius: 4px; /* 角を少し丸める */
     font-weight: bold;
-    font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 1.0em;
     flex-shrink: 0; /* 縮小させない */
-    margin-right: 10px;
+    margin-right: 15px;
+    height: fit-content; /* コンテンツに合わせた高さ */
 }
 
 /* モブ情報とエリア情報 */
-.mob-info {
+.mob-info-group {
+    display: flex;
+    align-items: flex-start;
     flex-grow: 1;
-    min-width: 0; /* コンテンツが長い場合にflex-growが正しく機能するように */
-    padding-right: 10px; /* ボタンとの間にスペース */
+    min-width: 0;
 }
 
+.mob-name-and-area {
+    flex-grow: 1;
+}
+
+/* 1. モンスター名の表示を以前のものに戻す */
 .mob-name {
-    font-size: 1.3em;
+    font-size: 1.4em; /* 以前の大きめフォントに戻す */
     font-weight: bold;
     color: #d84315;
-    /* モブ名が長い場合に折り返すように調整 */
     word-break: break-word; 
+    margin-bottom: 5px;
 }
 
 .mob-area {
@@ -76,26 +79,25 @@ main {
     color: #555;
 }
 
-/* 2. 討伐報告ボタンの縦表示 */
+/* 3. 討伐ボタンの右揃えと縦表示 */
 .report-button-wrapper {
-    /* ボタンを縦に配置するためのFlexコンテナ */
+    /* 常に右に寄せるための調整 */
     display: flex;
     flex-direction: column; 
-    flex-shrink: 0; /* 縮小させない */
-    align-items: center;
-    min-width: 70px; /* ボタンの最低幅 */
+    flex-shrink: 0; 
+    align-items: flex-end; /* ボタン全体を右揃えにする */
+    margin-left: 10px;
 }
 
 .report-button {
     background-color: #00796b;
     color: white;
-    padding: 8px 5px; /* 縦長に見えるように調整 */
+    padding: 8px 15px; 
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9em;
-    /* 縦表示のため、幅を100%にして縦長にする */
-    width: 100%; 
+    min-width: 100px; /* 縦長の見た目を維持するために最低幅を設定 */
     text-align: center;
     white-space: nowrap;
 }
@@ -109,6 +111,7 @@ main {
     font-size: 0.85em;
     color: #555;
 }
+
 
 /* --- モーダル（ポップアップ）のスタイル --- (変更なし) */
 .modal {
@@ -146,20 +149,10 @@ main {
     cursor: pointer;
 }
 
-#report-form label, #report-form input, #report-form button {
-    display: block;
-    margin-top: 10px;
-    width: 100%;
-    box-sizing: border-box;
-}
 #report-form input[type="datetime-local"] {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-}
-#report-form p strong, #report-form p span {
-    font-size: 1.1em;
-    color: #004d40;
 }
 
 /* メッセージ表示エリア (変更なし) */
